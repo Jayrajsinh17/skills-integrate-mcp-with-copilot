@@ -3,6 +3,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const userButton = document.getElementById("user-button");
+  const loginDialog = document.getElementById("login-dialog");
+  const loginForm = document.getElementById("login-form");
+  const cancelLogin = document.getElementById("cancel-login");
+  let authenticated = false;
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -30,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${details.participants
                   .map(
                     (email) =>
-                      `<li><span class="participant-email">${email}</span><button class="delete-btn" data-activity="${name}" data-email="${email}">❌</button></li>`
+                      `<li><span class="participant-email">${email}</span>${authenticated ? `<button class="delete-btn" data-activity="${name}" data-email="${email}">&#10005;</button>` : ""}</li>`
                   )
                   .join("")}
               </ul>
@@ -110,6 +115,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function checkLogin() {
+    const response = await fetch("/auth/me");
+    const user = await response.json();
+    authenticated = user.authenticated;
+    userButton.textContent = authenticated ? `Teacher: ${user.username}` : "👤";
+    userButton.classList.toggle("logged-in", authenticated);
+    signupForm.classList.toggle("hidden", !authenticated);
+    fetchActivities();
+  }
+
+  userButton.addEventListener("click", () => {
+    if (authenticated) {
+      fetch("/auth/logout", { method: "POST" }).then(checkLogin);
+    } else {
+      loginDialog.showModal();
+    }
+  });
+
+  cancelLogin.addEventListener("click", () => loginDialog.close());
+
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const response = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+      }),
+    });
+    if (response.ok) {
+      loginDialog.close();
+      loginForm.reset();
+      checkLogin();
+    } else {
+      messageDiv.textContent = "Invalid teacher credentials";
+      messageDiv.className = "error";
+      messageDiv.classList.remove("hidden");
+    }
+  });
+
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -156,5 +202,5 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Initialize app
-  fetchActivities();
+  checkLogin();
 });
