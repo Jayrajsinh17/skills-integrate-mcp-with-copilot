@@ -8,9 +8,24 @@
   </head>
   <body>
     <header>
+      <button id="user-button" class="user-button" aria-label="Teacher login">&#128100;</button>
       <h1>Mergington High School</h1>
       <h2>Extracurricular Activities</h2>
     </header>
+
+    <dialog id="login-dialog">
+      <form id="login-form" method="dialog">
+        <h3>Teacher Login</h3>
+        <label for="username">Username:</label>
+        <input type="text" id="username" required autocomplete="username" />
+        <label for="password">Password:</label>
+        <input type="password" id="password" required autocomplete="current-password" />
+        <div class="dialog-actions">
+          <button type="button" id="cancel-login">Cancel</button>
+          <button type="submit">Log in</button>
+        </div>
+      </form>
+    </dialog>
 
     <main>
       <section id="activities-container">
